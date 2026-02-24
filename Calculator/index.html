@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modern Calculator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gradient-to-br from-blue-100 to-purple-200 min-h-screen flex items-center justify-center p-4">
+    <div class="calculator bg-white rounded-3xl shadow-2xl p-6 w-full max-w-md">
+        <!-- Display Screen -->
+        <div class="bg-gray-900 rounded-2xl p-4 mb-6">
+            <div id="previous-operand" class="text-right text-gray-400 text-lg h-6 overflow-hidden"></div>
+            <div id="current-operand" class="text-right text-white text-4xl font-bold overflow-hidden break-all"></div>
+        </div>
+        
+        <!-- Buttons Grid -->
+        <div class="grid grid-cols-4 gap-3">
+            <!-- Row 1 -->
+            <button class="btn bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-4 px-3 rounded-xl transition duration-200 text-lg" data-action="clear">AC</button>
+            <button class="btn bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-4 px-3 rounded-xl transition duration-200 text-lg" data-action="delete"><i class="fas fa-backspace"></i></button>
+            <button class="btn bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-4 px-3 rounded-xl transition duration-200 text-lg" data-action="percent">%</button>
+            <button class="btn bg-orange-500 hover:bg-orange-600 text-white font-bold py-4 px-3 rounded-xl transition duration-200 text-lg" data-action="divide">÷</button>
+            
+            <!-- Row 2 -->
+            <button class="btn bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold py-4 px-3 rounded-xl transition duration-200 text-xl" data-number="7">7</button>
+            <button class="btn bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold py-4 px-3 rounded-xl transition duration-200 text-xl" data-number="8">8</button>
+            <button class="btn bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold py-4 px-3 rounded-xl transition duration-200 text-xl" data-number="9">9</button>
+            <button class="btn bg-orange-500 hover:bg-orange-600 text-white font-bold py-4 px-3 rounded-xl transition duration-200 text-lg" data-action="multiply">×</button>
+            
+            <!-- Row 3 -->
+            <button class="btn bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold py-4 px-3 rounded-xl transition duration-200 text-xl" data-number="4">4</button>
+            <button class="btn bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold py-4 px-3 rounded-xl transition duration-200 text-xl" data-number="5">5</button>
+            <button class="btn bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold py-4 px-3 rounded-xl transition duration-200 text-xl" data-number="6">6</button>
+            <button class="btn bg-orange-500 hover:bg-orange-600 text-white font-bold py-4 px-3 rounded-xl transition duration-200 text-lg" data-action="subtract">-</button>
+            
+            <!-- Row 4 -->
+            <button class="btn bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold py-4 px-3 rounded-xl transition duration-200 text-xl" data-number="1">1</button>
+            <button class="btn bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold py-4 px-3 rounded-xl transition duration-200 text-xl" data-number="2">2</button>
+            <button class="btn bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold py-4 px-3 rounded-xl transition duration-200 text-xl" data-number="3">3</button>
+            <button class="btn bg-orange-500 hover:bg-orange-600 text-white font-bold py-4 px-3 rounded-xl transition duration-200 text-lg" data-action="add">+</button>
+            
+            <!-- Row 5 -->
+            <button class="btn bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold py-4 px-3 rounded-xl transition duration-200 text-xl" data-number="0">0</button>
+            <button class="btn bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold py-4 px-3 rounded-xl transition duration-200 text-xl" data-number=".">.</button>
+            <button class="btn bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-4 px-3 rounded-xl transition duration-200 text-lg" data-action="sign">+/-</button>
+            <button class="btn bg-blue-500 hover:bg-blue-600 text-white font-bold py-4 px-3 rounded-xl transition duration-200 text-lg" data-action="equals">=</button>
+        </div>
+        
+        <!-- History Toggle -->
+        <button id="toggle-history" class="mt-6 w-full bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-4 rounded-xl transition duration-200 flex items-center justify-center gap-2">
+            <i class="fas fa-clock"></i> History
+        </button>
+        
+        <!-- History Panel -->
+        <div id="history-panel" class="hidden mt-4 p-4 bg-gray-50 rounded-xl max-h-48 overflow-y-auto">
+            <h3 class="font-bold text-gray-700 mb-2">Calculation History</h3>
+            <div id="history-list" class="space-y-1">
+                <!-- History items will be added here -->
+                <p class="text-gray-500 text-sm">No history yet</p>
+            </div>
+            <button id="clear-history" class="mt-3 text-red-500 hover:text-red-700 text-sm font-medium">Clear History</button>
+        </div>
+    </div>
+
+    <script>
+        class Calculator {
+            constructor(previousOperandTextElement, currentOperandTextElement, historyListElement) {
+                this.previousOperandTextElement = previousOperandTextElement;
+                this.currentOperandTextElement = currentOperandTextElement;
+                this.historyListElement = historyListElement;
+                this.clear();
+            }
+
+            clear() {
+                this.currentOperand = '0';
+                this.previousOperand = '';
+                this.operation = undefined;
+                this.shouldResetScreen = false;
+            }
+
+            delete() {
+                if (this.shouldResetScreen) return;
+                if (this.currentOperand === '0') return;
+                
+                this.currentOperand = this.currentOperand.toString().slice(0, -1);
+                if (this.currentOperand === '') this.currentOperand = '0';
+            }
+
+            appendNumber(number) {
+                if (this.shouldResetScreen) {
+                    this.currentOperand = '';
+                    this.shouldResetScreen = false;
+                }
+                
+                if (number === '.' && this.currentOperand.includes('.')) return;
+                if (this.currentOperand === '0' && number !== '.') {
+                    this.currentOperand = number.toString();
+                } else {
+                    this.currentOperand = this.currentOperand.toString() + number.toString();
+                }
+            }
+
+            chooseOperation(operation) {
+                if (this.currentOperand === '') return;
+                
+                if (this.previousOperand !== '') {
+                    this.compute();
+                }
+                
+                this.operation = operation;
+                this.previousOperand = this.currentOperand;
+                this.currentOperand = '';
+            }
+
+            compute() {
+                let computation;
+                const prev = parseFloat(this.previousOperand);
+                const current = parseFloat(this.currentOperand);
+                
+                if (isNaN(prev) || isNaN(current)) return;
+                
+                switch (this.operation) {
+                    case 'add':
+                        computation = prev + current;
+                        break;
+                    case 'subtract':
+                        computation = prev - current;
+                        break;
+                    case 'multiply':
+                        computation = prev * current;
+                        break;
+                    case 'divide':
+                        if (current === 0) {
+                            alert("Cannot divide by zero!");
+                            this.clear();
+                            return;
+                        }
+                        computation = prev / current;
+                        break;
+                    default:
+                        return;
+                }
+                
+                // Store in history
+                this.addToHistory(prev, this.operation, current, computation);
+                
+                this.currentOperand = computation;
+                this.operation = undefined;
+                this.previousOperand = '';
+                this.shouldResetScreen = true;
+            }
+
+            getDisplayNumber(number) {
+                const stringNumber = number.toString();
+                const integerDigits = parseFloat(stringNumber.split('.')[0]);
+                const decimalDigits = stringNumber.split('.')[1];
+                
+                let integerDisplay;
+                if (isNaN(integerDigits)) {
+                    integerDisplay = '';
+                } else {
+                    integerDisplay = integerDigits.toLocaleString('en', { maximumFractionDigits: 0 });
+                }
+                
+                if (decimalDigits != null) {
+                    return `${integerDisplay}.${decimalDigits}`;
+                } else {
+                    return integerDisplay;
+                }
+            }
+
+            updateDisplay() {
+                this.currentOperandTextElement.innerText = 
+                    this.getDisplayNumber(this.currentOperand);
+                
+                if (this.operation != null) {
+                    this.previousOperandTextElement.innerText = 
+                        `${this.getDisplayNumber(this.previousOperand)} ${this.operation}`;
+                } else {
+                    this.previousOperandTextElement.innerText = '';
+                }
+            }
+
+            addToHistory(prev, operation, current, result) {
+                const historyItem = document.createElement('div');
+                historyItem.className = 'flex justify-between items-center text-sm py-1 px-2 bg-white rounded hover:bg-gray-100 transition';
+                
+                const expression = `${this.getDisplayNumber(prev)} ${operation} ${this.getDisplayNumber(current)}`;
+                const resultDisplay = `= ${this.getDisplayNumber(result)}`;
+                
+                historyItem.innerHTML = `
+                    <span class="font-medium">${expression}</span>
+                    <span class="text-blue-500 font-bold">${resultDisplay}</span>
+                `;
+                
+                this.historyListElement.prepend(historyItem);
+            }
+
+            clearHistory() {
+                this.historyListElement.innerHTML = '<p class="text-gray-500 text-sm">No history yet</p>';
+            }
+
+            toggleSign() {
+                if (this.currentOperand === '0') return;
+                this.currentOperand = (parseFloat(this.currentOperand) * -1).toString();
+            }
+
+            percent() {
+                if (this.currentOperand === '0') return;
+                this.currentOperand = (parseFloat(this.currentOperand) / 100).toString();
+            }
+        }
+
+        // DOM Elements
+        const previousOperandTextElement = document.getElementById('previous-operand');
+        const currentOperandTextElement = document.getElementById('current-operand');
+        const historyListElement = document.getElementById('history-list');
+        const toggleHistoryBtn = document.getElementById('toggle-history');
+        const historyPanel = document.getElementById('history-panel');
+        const clearHistoryBtn = document.getElementById('clear-history');
+
+        // Calculator Instance
+        const calculator = new Calculator(
+            previousOperandTextElement,
+            currentOperandTextElement,
+            historyListElement
+        );
+
+        // Number Buttons
+        document.querySelectorAll('[data-number]').forEach(button => {
+            button.addEventListener('click', () => {
+                calculator.appendNumber(button.dataset.number);
+                calculator.updateDisplay();
+            });
+        });
+
+        // Operation Buttons
+        document.querySelectorAll('[data-action]').forEach(button => {
+            button.addEventListener('click', () => {
+                const action = button.dataset.action;
+                
+                switch (action) {
+                    case 'add':
+                    case 'subtract':
+                    case 'multiply':
+                    case 'divide':
+                        calculator.chooseOperation(action);
+                        break;
+                    case 'clear':
+                        calculator.clear();
+                        break;
+                    case 'delete':
+                        calculator.delete();
+                        break;
+                    case 'equals':
+                        calculator.compute();
+                        break;
+                    case 'sign':
+                        calculator.toggleSign();
+                        break;
+                    case 'percent':
+                        calculator.percent();
+                        break;
+                }
+                
+                calculator.updateDisplay();
+            });
+        });
+
+        // Toggle History Panel
+        toggleHistoryBtn.addEventListener('click', () => {
+            historyPanel.classList.toggle('hidden');
+            toggleHistoryBtn.classList.toggle('bg-blue-500');
+            toggleHistoryBtn.classList.toggle('text-white');
+        });
+
+        // Clear History
+        clearHistoryBtn.addEventListener('click', () => {
+            calculator.clearHistory();
+        });
+
+        // Keyboard Support
+        document.addEventListener('keydown', (e) => {
+            if (e.key >= '0' && e.key <= '9') {
+                calculator.appendNumber(e.key);
+            } else if (e.key === '.') {
+                calculator.appendNumber('.');
+            } else if (e.key === 'Backspace') {
+                calculator.delete();
+            } else if (e.key === 'Escape') {
+                calculator.clear();
+            } else if (e.key === 'Enter' || e.key === '=') {
+                e.preventDefault();
+                calculator.compute();
+            } else if (e.key === '+') {
+                calculator.chooseOperation('add');
+            } else if (e.key === '-') {
+                calculator.chooseOperation('subtract');
+            } else if (e.key === '*') {
+                calculator.chooseOperation('multiply');
+            } else if (e.key === '/') {
+                e.preventDefault();
+                calculator.chooseOperation('divide');
+            }
+            
+            calculator.updateDisplay();
+        });
+
+        // Initialize display
+        calculator.updateDisplay();
+    </script>
+</body>
+</html>
